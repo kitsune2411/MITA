@@ -21,6 +21,30 @@ const insertKnowledge = async (title, category, content, embedding) => {
     return knowledgeId;
 };
 
+// Soft delete a knowledge record
+const softDeleteKnowledge = async (id) => {
+    await db.query(
+        'UPDATE knowledge SET deleted_at = NOW() WHERE id = $1',
+        [id]
+    );
+};
+
+// Restore a soft-deleted record
+const restoreKnowledge = async (id) => {
+    await db.query(
+        'UPDATE knowledge SET deleted_at = NULL WHERE id = $1',
+        [id]
+    );
+};
+
+// Get all knowledge entries not deleted
+const getAllKnowledge = async () => {
+    const res = await db.query(
+        'SELECT * FROM knowledge WHERE deleted_at IS NULL ORDER BY created_at DESC'
+    );
+    return res.rows;
+};
+
 
 // Model for fetching knowledge based on query
 const getKnowledgeByEmbedding = async (queryEmbedding) => {
@@ -31,6 +55,7 @@ const getKnowledgeByEmbedding = async (queryEmbedding) => {
         `SELECT k.title, k.content
          FROM knowledge k
          JOIN knowledge_embeddings ke ON k.id = ke.knowledge_id
+         WHERE k.deleted_at IS NULL
          ORDER BY ke.embedding <#> $1 -- Use the pgvector operator for cosine similarity
          LIMIT 1`,
         [queryEmbeddingStr]  // Pass the query embedding as a valid vector literal
@@ -39,4 +64,10 @@ const getKnowledgeByEmbedding = async (queryEmbedding) => {
     return res.rows[0];
 };
 
-module.exports = { insertKnowledge, getKnowledgeByEmbedding };
+module.exports = {
+    insertKnowledge,
+    softDeleteKnowledge,
+    restoreKnowledge,
+    getAllKnowledge,
+    getKnowledgeByEmbedding
+};

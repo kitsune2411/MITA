@@ -79,6 +79,11 @@ CREATE TABLE knowledge_embeddings (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- add soft delete
+ALTER TABLE knowledge
+ADD COLUMN deleted_at TIMESTAMP;
+
+
 -- Optionally, create an index for faster vector similarity searches
 CREATE INDEX ON knowledge_embeddings
 USING ivfflat (embedding vector_cosine_ops)
