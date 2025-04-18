@@ -1,0 +1,17 @@
+# docker-compose.yml
+version: '3.8'
+services:
+  postgres:
+    image: ankane/pgvector:latest  # already includes pgvector
+    container_name: mita_pg
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: rahasia
+      POSTGRES_DB: mita
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  pg_data:
