@@ -79,6 +79,19 @@ CREATE TABLE knowledge_embeddings (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE query_logs (
+    id SERIAL PRIMARY KEY,
+    question TEXT NOT NULL,
+    response TEXT NOT NULL,
+    confidence_score REAL,
+    is_fallback BOOLEAN DEFAULT FALSE,
+    ip_address TEXT,
+    user_agent TEXT,
+    user_id TEXT,         -- Optional: for authenticated users
+    session_id TEXT,      -- Optional: for anonymous users/sessions
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- add soft delete
 ALTER TABLE knowledge
 ADD COLUMN deleted_at TIMESTAMP;
