@@ -1,6 +1,5 @@
 const db = require('../config/db');
-
-const CONFIDENCE_THRESHOLD = 0.85; // Define a constant for confidence score threshold
+const { CONFIDENCE_THRESHOLD } = require('../config/config'); // Import configuration settings
 
 // Model for inserting knowledge
 const insertKnowledge = async (title, category, content, embedding) => {
@@ -54,28 +53,26 @@ const getKnowledgeByEmbedding = async (queryEmbedding) => {
         // Convert query embedding to the correct vector literal format
         const queryEmbeddingStr = `[${queryEmbedding.join(',')}]`;  // Ensures correct format for pgvector
 
-        // Fetch multiple results (e.g., top 3) with their confidence scores
+        // Fetch the most relevant knowledge entry based on the embedding similarity
         const res = await db.query(
             `SELECT k.title, k.content,
-                    1 - (ke.embedding <#> $1) AS confidence_score  -- 1 - cosine_distance to get similarity
+                    1 - (ke.embedding <#> $1) AS confidence_score
              FROM knowledge k
              JOIN knowledge_embeddings ke ON k.id = ke.knowledge_id
              WHERE k.deleted_at IS NULL
-             ORDER BY ke.embedding <#> $1  -- Use the pgvector operator for cosine distance
-             LIMIT 3`,  // Fetch top 3 results
+             ORDER BY ke.embedding <#> $1
+             LIMIT 3`,
             [queryEmbeddingStr]
         );
 
-        // Check if we got results
         if (res.rows.length === 0) {
-            return { message: "I'm not confident about this answer. Could you please clarify?" };
+            return {
+                message: "No relevant information found. Try asking differently!",
+                confidence: 0
+            };
         }
 
-        // Sort results by confidence score
-        const sortedResults = res.rows.sort((a, b) => b.confidence_score - a.confidence_score);
-
-        // Filter based on confidence threshold
-        const topResult = sortedResults[0];
+        const topResult = res.rows[0];
 
         if (topResult.confidence_score >= CONFIDENCE_THRESHOLD) {
             return {
@@ -84,12 +81,18 @@ const getKnowledgeByEmbedding = async (queryEmbedding) => {
                 confidence: topResult.confidence_score
             };
         } else {
-            return { message: "I'm not confident about this answer. Could you please clarify?" };
+            return {
+                message: "No relevant information found. Try asking differently!",
+                confidence: topResult.confidence_score
+            };
         }
 
     } catch (err) {
         console.error('Error fetching knowledge:', err);
-        return { message: "An error occurred while processing your request. Please try again later." };
+        return {
+            message: "An error occurred while processing your request. Please try again later.",
+            confidence: 0
+        };
     }
 };
 

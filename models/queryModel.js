@@ -1,15 +1,14 @@
 const OpenAI = require("openai");
-const dotenv = require("dotenv");
-dotenv.config();
+const { OPENAI_API_KEY, EMBEDDING_MODEL } = require("../config/config");
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: OPENAI_API_KEY,
 });
 
 // Generate embedding for the query
 const generateEmbedding = async (query) => {
     const response = await openai.embeddings.create({
-        model: "text-embedding-3-small",
+        model: EMBEDDING_MODEL,
         input: query,
     });
     return response.data[0].embedding;
