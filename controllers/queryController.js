@@ -1,5 +1,5 @@
 const { getKnowledgeByEmbedding } = require('../models/knowledgeModel');
-const { generateEmbedding } = require('../models/queryModel');
+const { generateEmbedding, generateResponseCompletion } = require('../models/queryModel');
 const { logQuery } = require('../models/queryLogs');
 
 // Controller for handling student query
@@ -18,12 +18,25 @@ const handleQuery = async (req, res) => {
         // Fetch the most relevant knowledge entry
         const knowledge = await getKnowledgeByEmbedding(queryEmbedding);
 
+        const result = await generateResponseCompletion(query, knowledge);
+
+        if (!result) {
+            return res.status(404).json({ message: 'No relevant information found.' });
+        }
+
+        let parsedResponse = null;
+        try {
+            parsedResponse = JSON.parse(result);
+        } catch (error) {
+            console.error("Error parsing GPT response:", error);
+            return { message: "An error occurred. Please try again later." };
+        }
 
         // Log the query and response
         await logQuery(
             query,
-            knowledge,
-            knowledge.confidence || 0,
+            parsedResponse.response || "No response",
+            parsedResponse.confidence || 0,
             !!knowledge.message, // isFallback
             ipAddress,
             userAgent,
@@ -31,11 +44,7 @@ const handleQuery = async (req, res) => {
             sessionId
         );
 
-        if (!knowledge) {
-            return res.status(404).json({ message: 'No relevant information found.' });
-        }
-
-        res.status(200).json(knowledge);
+        res.status(200).json(parsedResponse);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

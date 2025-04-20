@@ -61,7 +61,7 @@ const getKnowledgeByEmbedding = async (queryEmbedding) => {
              JOIN knowledge_embeddings ke ON k.id = ke.knowledge_id
              WHERE k.deleted_at IS NULL
              ORDER BY ke.embedding <#> $1
-             LIMIT 3`,
+             LIMIT 5`,
             [queryEmbeddingStr]
         );
 
@@ -72,14 +72,10 @@ const getKnowledgeByEmbedding = async (queryEmbedding) => {
             };
         }
 
-        const topResult = res.rows[0];
+        const topResult = res.rows.filter(row => row.confidence_score >= CONFIDENCE_THRESHOLD);
 
-        if (topResult.confidence_score >= CONFIDENCE_THRESHOLD) {
-            return {
-                title: topResult.title,
-                content: topResult.content,
-                confidence: topResult.confidence_score
-            };
+        if (topResult.length > 0) {
+            return topResult;
         } else {
             return {
                 message: "No relevant information found. Try asking differently!",
