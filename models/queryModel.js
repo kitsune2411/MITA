@@ -9,7 +9,7 @@ const openai = new OpenAI({
 // Generate embedding for the query
 const generateEmbedding = async (query) => {
     const response = await openai.embeddings.create({
-        model: "text-embedding-ada-002",
+        model: "text-embedding-3-small",
         input: query,
     });
     return response.data[0].embedding;
