@@ -1,3 +1,4 @@
+require('./log')
 const express = require('express');
 const dotenv = require('dotenv');
 const knowledgeRoutes = require('./routes/knowledgeRoutes');
