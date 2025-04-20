@@ -1,5 +1,5 @@
 const OpenAI = require("openai");
-const { OPENAI_API_KEY, EMBEDDING_MODEL } = require("../config/config");
+const { OPENAI_API_KEY, EMBEDDING_MODEL, COMPLETIONS_MODEL, COMPLETIONS_TEMPERATURE } = require("../config/config");
 
 const openai = new OpenAI({
     apiKey: OPENAI_API_KEY,
@@ -43,11 +43,11 @@ const generateEmbedding = async (query) => {
 };
 
 const generateResponseCompletion = async (query, knowledge) => {
-    const RelatedKnowledge = knowledge;
+    const relatedKnowledge = JSON.stringify(knowledge);
     console.log("Query: ", query);
-    console.log("RelatedKnowledge: ", JSON.stringify(RelatedKnowledge));
+    console.log("RelatedKnowledge: ", relatedKnowledge);
     const response = await openai.chat.completions.create({
-        model: "gpt-4",
+        model: COMPLETIONS_MODEL,
         messages: [
             {
                 role: "system",
@@ -59,10 +59,10 @@ const generateResponseCompletion = async (query, knowledge) => {
             },
             {
                 role: "assistant",
-                content: `Relevant Knowledge: ${JSON.stringify(RelatedKnowledge)}`,
+                content: `Relevant Knowledge: ${relatedKnowledge}`,
             }
         ],
-        temperature: 0.7,
+        temperature: COMPLETIONS_TEMPERATURE,
     });
     return response.choices[0].message.content;
 }
