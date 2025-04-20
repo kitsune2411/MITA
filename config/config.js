@@ -6,6 +6,7 @@ const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
 const COMPLETIONS_MODEL = process.env.COMPLETIONS_MODEL || "gpt-4";
 const COMPLETIONS_TEMPERATURE = process.env.TEMPERATURE || 0.7; // temperature for randomness in completions
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const CACHE_TTL = Number(process.env.CACHE_TTL) || 60 * 30;
 
 module.exports = {
     CONFIDENCE_THRESHOLD,
@@ -13,4 +14,5 @@ module.exports = {
     OPENAI_API_KEY,
     COMPLETIONS_MODEL,
     COMPLETIONS_TEMPERATURE,
+    CACHE_TTL,
 };
