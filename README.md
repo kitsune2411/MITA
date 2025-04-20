@@ -101,6 +101,7 @@ ADD COLUMN deleted_at TIMESTAMP;
 CREATE INDEX ON knowledge_embeddings
 USING ivfflat (embedding vector_cosine_ops)
 WITH (lists = 100);
+SET ivfflat.probes = 10;  -- balance between speed and accuracy
 ```
 
 ---
