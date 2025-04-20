@@ -123,3 +123,164 @@ SET ivfflat.probes = 10;  -- balance between speed and accuracy
    ```bash
    npm start
    ```
+
+---
+
+## Endpoints Overview
+
+| Method | Endpoint             | Description                                     |
+| ------ | -------------------- | ----------------------------------------------- |
+| GET    | `/health`            | Health check for the server                     |
+| GET    | `/api/knowledge/`    | Retrieve all active knowledge entries           |
+| POST   | `/api/knowledge/add` | Add a new knowledge entry                       |
+| DELETE | `/api/knowledge/:id` | Soft delete a knowledge entry                   |
+| POST   | `/api/query`         | Submit a user query and get AI-generated answer |
+
+---
+
+## 1. Health Check
+
+### `GET /health`
+
+Performs a basic health check to ensure the server is operational.
+
+#### Response
+
+```json
+OK
+```
+
+---
+
+## 2. Knowledge Management
+
+### `GET /api/knowledge/`
+
+Retrieves all non-deleted knowledge entries stored in the system.
+
+#### Response
+
+```json
+[
+  {
+    "id": 1,
+    "title": "Library Location",
+    "category": "Campus Info",
+    "content": "The library is located on the 2rd floor of the main building in ITB STIKOM Bali Renon.",
+    "deleted_at": null
+  }
+]
+```
+
+---
+
+### `POST /api/knowledge/add`
+
+Adds a new piece of knowledge to the system. Automatically generates OpenAI Embedding and stores it alongside metadata.
+
+#### Request Body
+
+```json
+{
+  "title": "Library Location",
+  "category": "Campus Info",
+  "content": "The library is located on the 2rd floor of the main building in ITB STIKOM Bali Renon."
+}
+```
+
+#### Response
+
+```json
+{
+  "message": "Knowledge added successfully",
+  "id": 1
+}
+```
+
+---
+
+### `DELETE /api/knowledge/:id`
+
+Performs a soft delete by marking the record with a `deleted_at` timestamp.
+
+#### Path Parameter
+
+- `id`: Integer (ID of the knowledge entry to delete)
+
+#### Example
+
+```http
+DELETE /api/knowledge/1
+```
+
+#### Response
+
+```json
+{
+  "message": "Knowledge deleted successfully"
+}
+```
+
+---
+
+## 3. Query Engine
+
+### `POST /api/query`
+
+Submits a natural language question. The system will compute the embedding, compare it against stored knowledge using cosine similarity, and return the best-matched answer if the confidence is above a threshold.
+
+#### Request Body
+
+```json
+{
+  "query": "Where is the library?"
+}
+```
+
+#### Successful Response (Confident)
+
+```json
+{
+  "title": "Library Location",
+  "content": "The library is located on the 2rd floor of the main building in ITB STIKOM Bali Renon.",
+  "confidence": 0.91
+}
+```
+
+#### Fallback Response (Not Confident)
+
+```json
+{
+  "message": "No relevant information found. Try asking differently!"
+}
+```
+
+#### Notes
+
+- Confidence scores are calculated as `1 - cosine_distance`.
+- If the score is below a defined threshold (e.g., 0.85), the system will return a fallback message.
+- Top 3 matches are considered internally before selecting the best result.
+
+---
+
+## 4. Query Logging
+
+Each request made to the `/api/query` endpoint is automatically logged for future analysis and system improvement.
+
+### Logged Fields
+
+- Query text
+- Timestamp
+- Confidence score
+- Matched knowledge ID (if any)
+- Response message
+- User ID or IP address (automatically detected)
+
+#### Purpose
+
+- Identify recurring questions with low accuracy
+- Improve training data
+- Monitor usage patterns and abuse prevention
+- Support user-specific analytics
+
+---
