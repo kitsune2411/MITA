@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "mita-app",
-      script: "server.js",
+      script: "dist/server.js",
       exec_mode: "cluster",
       instances: 2, // run 2 instances
       env: {

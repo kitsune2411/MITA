@@ -1,3 +1,34 @@
-/node_modules
+# Node modules
+node_modules/
 
+# Build output (for tools like esbuild)
+dist/
+
+# Environment files (never push secrets!)
 .env
+.env.*
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# PM2 logs and dump files
+pids/
+*.pid
+*.seed
+*.pid.lock
+dump.pm2
+
+# Docker stuff
+*.tgz
+docker-compose.override.yml
+
+# OS junk files
+.DS_Store
+Thumbs.db
+
+# VSCode settings
+.vscode/

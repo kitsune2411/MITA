@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -7,16 +7,19 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+RUN npm run build
 
 # Stage 2: Runtime
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Install pm2
 RUN npm install -g pm2
 
 WORKDIR /app
 
-COPY --from=builder /app /app
+COPY --from=builder /app/dist ./dist
+COPY ecosystem.config.js ./
+COPY .env ./
 
 ENV NODE_ENV=production
 
