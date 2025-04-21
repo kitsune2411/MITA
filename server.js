@@ -4,6 +4,8 @@ const dotenv = require('dotenv');
 const knowledgeRoutes = require('./routes/knowledgeRoutes');
 const queryRoutes = require('./routes/queryRoutes');
 const helmet = require('helmet');
+const db = require('./config/db');
+const redis = require('./config/redis');
 
 dotenv.config();
 
@@ -39,6 +41,36 @@ app.use((req, res) => {
     res.status(404).send('Not Found');
 });
 
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+}
+);
+process.on('unhandledRejection', (err) => {
+    console.error('Unhandled Rejection:', err);
+}
+);
+process.on('SIGINT', () => {
+    console.log('Server shutting down...');
+    handleExit();
+    process.exit(0);
+}
+);
+process.on('SIGTERM', () => {
+    console.log('Server shutting down...');
+    handleExit();
+    process.exit(0);
+}
+);
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
+
+async function handleExit() {
+    console.log('Closing database connection...');
+    await db.end();
+    console.log('Database connection closed.');
+    console.log('Closing Redis connection...');
+    await redis.quit();
+    console.log('Redis connection closed.');
+}
