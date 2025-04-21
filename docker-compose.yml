@@ -1,5 +1,5 @@
 # docker-compose.yml
-version: '3.8'
+name: mita
 services:
   postgres:
     image: ankane/pgvector:latest  # includes pgvector extension
