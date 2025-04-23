@@ -45,6 +45,17 @@ case "$COMMAND" in
     log_action "Building the containers"
     docker compose build
     ;;
+  push)
+    source .env
+
+    IMAGE="$DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG"
+
+    echo "Building Docker image: $IMAGE"
+    docker build -t "$IMAGE" .
+
+    echo "Pushing Docker image to registry..."
+    docker push "$IMAGE"
+    ;;
   restart)
     log_action "Restarting 'app' service"
     docker compose restart app

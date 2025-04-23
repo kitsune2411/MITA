@@ -3,6 +3,7 @@ name: mita
 services:
   app:
     build: .
+    image:  ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
     container_name: mita_app
     restart: always
     env_file: .env
