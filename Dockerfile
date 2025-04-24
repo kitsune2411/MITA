@@ -13,13 +13,12 @@ RUN npm run build
 FROM node:20-alpine
 
 # Install pm2
-RUN npm install -g pm2
+RUN npm install -g pm2 --omit=dev
 
 WORKDIR /app
 
 COPY --from=builder /app/dist ./dist
 COPY ecosystem.config.js ./
-COPY .env ./
 
 ENV NODE_ENV=production
 
