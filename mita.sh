@@ -12,6 +12,7 @@ function show_help {
   echo "  down         Stop and remove all services"
   echo "  logs         Show logs for the 'app' service"
   echo "  build        Build the containers"
+  echo "  push         Build and push the Docker image to the registry"
   echo "  restart      Restart the 'app' service"
   echo "  psql         Access the PostgreSQL database from the container"
   echo "  status       Show the status of all services"
