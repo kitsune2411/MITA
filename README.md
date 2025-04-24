@@ -4,161 +4,142 @@ MITA (STIKOM BALI Intelligent Assistant) is a chatbot designed to help students 
 
 The system uses OpenAI's embedding model to transform textual knowledge into mathematical vectors and compare them with a database of campus-related information. By doing so, MITA can provide accurate and relevant answers to students based on their questions.
 
-### Features:
+---
+
+## 🚀 Features
 
 - **AI-Powered Chatbot**: Built on OpenAI's embedding API for natural language understanding.
 - **Admin-Only Knowledge Input**: Only admins can add and manage knowledge via a simple interface.
 - **Query Answering**: Students can ask questions about campus facilities, schedules, locations, and other campus-related topics.
-- **PostgreSQL Backend**: Uses PostgreSQL to store and manage campus knowledge and embeddings.
-- **Cost-Efficient**: Designed with a minimal viable product (MVP) approach to minimize operational costs while still providing an effective user experience.
-
-### Tech Stack:
-
-- **Backend**: Node.js with Express.js
-- **Database**: PostgreSQL
-- **AI Integration**: OpenAI Embedding API
-- **Environment**: Docker for containerization (optional)
-
-### How It Works:
-
-1. Admins input campus-related information (e.g., "The library is located on the 3rd floor of Building A").
-2. MITA converts this information into a mathematical **embedding** (vector) using OpenAI's API and stores it in PostgreSQL.
-3. Students can query MITA (e.g., "Where is the library?").
-4. MITA generates an embedding of the student's question and compares it with the stored embeddings.
-5. MITA retrieves the most relevant knowledge and responds with the answer.
+- **PostgreSQL Backend**: Uses PostgreSQL with pgvector to store and manage embeddings.
+- **Efficient & Cost-Friendly**: Designed as a minimal viable product (MVP) to minimize operational costs.
 
 ---
 
-### Prerequisites:
+## 🛠️ Tech Stack
+
+- **Backend**: Node.js + Express.js
+- **Database**: PostgreSQL + pgvector
+- **AI Integration**: OpenAI Embedding API
+- **Containerization**: Docker (optional)
+
+---
+
+## ⚙️ How It Works
+
+1. Admins add campus-related knowledge.
+2. The system generates embeddings and stores them.
+3. Students submit queries.
+4. MITA compares embeddings and finds the most relevant match.
+5. A contextual response is returned.
+
+---
+
+## 📦 Prerequisites
 
 - Node.js v16 or later
-- PostgreSQL database setup
-- OpenAI API key for embeddings
+- PostgreSQL with `pgvector` extension enabled
+- OpenAI API Key
 
 ---
 
-### Installation
+## 📥 Installation
 
-#### 1. **Start Database**
-
-To start the database using Docker, run the following command:
+### 1. Start the Database
 
 ```bash
 docker compose up -d
 ```
 
-#### 2. **Connect to Database**
-
-To connect to the database, run:
+### 2. Connect to PostgreSQL
 
 ```bash
 docker exec -it mita_pg psql -U postgres -d mita
 ```
 
-#### 3. **Create the Database Schema**
-
-Run the following SQL commands to set up the necessary tables in PostgreSQL:
+### 3. Create Schema
 
 ```sql
--- Enable the pgvector extension (if not already enabled)
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- Create the necessary tables
 CREATE TABLE knowledge (
   id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,
   category TEXT,
   content TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP
 );
 
 CREATE TABLE knowledge_embeddings (
   id SERIAL PRIMARY KEY,
   knowledge_id INT REFERENCES knowledge(id) ON DELETE CASCADE,
-  embedding VECTOR(1536) NOT NULL,  -- Storing 1536-dimensional embeddings
+  embedding VECTOR(1536) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE query_logs (
-    id SERIAL PRIMARY KEY,
-    question TEXT NOT NULL,
-    response TEXT NOT NULL,
-    confidence_score REAL,
-    is_fallback BOOLEAN DEFAULT FALSE,
-    ip_address TEXT,
-    user_agent TEXT,
-    user_id TEXT,         -- Optional: for authenticated users
-    session_id TEXT,      -- Optional: for anonymous users/sessions
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id SERIAL PRIMARY KEY,
+  question TEXT NOT NULL,
+  response TEXT NOT NULL,
+  confidence_score REAL,
+  is_fallback BOOLEAN DEFAULT FALSE,
+  ip_address TEXT,
+  user_agent TEXT,
+  user_id TEXT,
+  session_id TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- add soft delete
-ALTER TABLE knowledge
-ADD COLUMN deleted_at TIMESTAMP;
-
-
--- Optionally, create an index for faster vector similarity searches
-CREATE INDEX ON knowledge_embeddings
-USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);
-SET ivfflat.probes = 10;  -- balance between speed and accuracy
+CREATE INDEX ON knowledge_embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+SET ivfflat.probes = 10;
 ```
 
 ---
 
-### Run the Server
+## 🚀 Run the Server
 
-1. Clone the repository
-
+1. Clone this repo
 2. Install dependencies:
 
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
-3. Configure environment variables (e.g., database connection, OpenAI API key).
+3. Configure `.env`
+4. Start the app:
 
-4. Run the server:
-
-   ```bash
-   npm start
-   ```
-
----
-
-## Endpoints Overview
-
-| Method | Endpoint             | Description                                     |
-| ------ | -------------------- | ----------------------------------------------- |
-| GET    | `/health`            | Health check for the server                     |
-| GET    | `/api/knowledge/`    | Retrieve all active knowledge entries           |
-| POST   | `/api/knowledge/add` | Add a new knowledge entry                       |
-| DELETE | `/api/knowledge/:id` | Soft delete a knowledge entry                   |
-| POST   | `/api/query`         | Submit a user query and get AI-generated answer |
-
----
-
-## 1. Health Check
-
-### `GET /health`
-
-Performs a basic health check to ensure the server is operational.
-
-#### Response
-
-```json
-OK
+```bash
+npm run dev
 ```
 
 ---
 
-## 2. Knowledge Management
+## 📡 API Endpoints
 
-### `GET /api/knowledge/`
+| Method | Endpoint             | Description                           |
+| ------ | -------------------- | ------------------------------------- |
+| GET    | `/health`            | Health check                          |
+| GET    | `/api/knowledge/`    | Retrieve all active knowledge entries |
+| POST   | `/api/knowledge/add` | Add new knowledge                     |
+| DELETE | `/api/knowledge/:id` | Soft delete a knowledge entry         |
+| POST   | `/api/query`         | Submit a query and get AI response    |
 
-Retrieves all non-deleted knowledge entries stored in the system.
+---
 
-#### Response
+## 📍 Endpoint Details
+
+### 1. `GET /health`
+
+Simple check if the server is running.
+
+```json
+"OK"
+```
+
+### 2. `GET /api/knowledge/`
+
+Returns all non-deleted knowledge.
 
 ```json
 [
@@ -172,13 +153,9 @@ Retrieves all non-deleted knowledge entries stored in the system.
 ]
 ```
 
----
+### 3. `POST /api/knowledge/add`
 
-### `POST /api/knowledge/add`
-
-Adds a new piece of knowledge to the system. Automatically generates OpenAI Embedding and stores it alongside metadata.
-
-#### Request Body
+Adds new knowledge and auto-generates embeddings.
 
 ```json
 {
@@ -188,7 +165,7 @@ Adds a new piece of knowledge to the system. Automatically generates OpenAI Embe
 }
 ```
 
-#### Response
+Response:
 
 ```json
 {
@@ -197,23 +174,15 @@ Adds a new piece of knowledge to the system. Automatically generates OpenAI Embe
 }
 ```
 
----
+### 4. `DELETE /api/knowledge/:id`
 
-### `DELETE /api/knowledge/:id`
-
-Performs a soft delete by marking the record with a `deleted_at` timestamp.
-
-#### Path Parameter
-
-- `id`: Integer (ID of the knowledge entry to delete)
-
-#### Example
+Soft deletes by updating `deleted_at`.
 
 ```http
 DELETE /api/knowledge/1
 ```
 
-#### Response
+Response:
 
 ```json
 {
@@ -221,15 +190,9 @@ DELETE /api/knowledge/1
 }
 ```
 
----
+### 5. `POST /api/query`
 
-## 3. Query Engine
-
-### `POST /api/query`
-
-Submits a natural language question. The system will compute the embedding, compare it against stored knowledge using cosine similarity, and return the best-matched answer if the confidence is above a threshold.
-
-#### Request Body
+Handles natural language questions.
 
 ```json
 {
@@ -237,50 +200,63 @@ Submits a natural language question. The system will compute the embedding, comp
 }
 ```
 
-#### Successful Response (Confident)
+Response:
 
 ```json
 {
-  "title": "Library Location",
-  "content": "The library is located on the 2rd floor of the main building in ITB STIKOM Bali Renon.",
+  "response": "The library is located on the 2rd floor of the main building in ITB STIKOM Bali Renon.",
   "confidence": 0.91
 }
 ```
 
-#### Fallback Response (Not Confident)
+Cached Response:
 
 ```json
 {
-  "message": "No relevant information found. Try asking differently!"
+  "response": "The library is located on the 2rd floor of the main building in ITB STIKOM Bali Renon.",
+  "confidence": 0.91,
+  "fromCache": true
 }
 ```
 
-#### Notes
+---
 
-- Confidence scores are calculated as `1 - cosine_distance`.
-- If the score is below a defined threshold (e.g., 0.85), the system will return a fallback message.
-- Top 3 matches are considered internally before selecting the best result.
+## 📝 Query Logging
+
+Each `/api/query` call is logged with:
+
+- Question & response
+- Confidence score
+- IP/User-Agent
+- User/session ID (if available)
+
+Helps improve accuracy, analytics, and prevent abuse.
 
 ---
 
-## 4. Query Logging
+## 🧰 Helper Script - `mita.sh`
 
-Each request made to the `/api/query` endpoint is automatically logged for future analysis and system improvement.
+You can use the `mita.sh` Bash script to manage your Docker services efficiently.
 
-### Logged Fields
+### 📜 Available Commands:
 
-- Query text
-- Timestamp
-- Confidence score
-- Matched knowledge ID (if any)
-- Response message
-- User ID or IP address (automatically detected)
+- `up`: Start all services in detached mode
+- `down`: Stop and remove all services (with confirmation)
+- `logs`: Show logs for the `app` service
+- `build`: Build the containers
+- `push`: Build and push the Docker image using `.env` variables
+- `restart`: Restart the `app` service
+- `psql`: Access PostgreSQL using credentials from `.env`
+- `status`: Show status of all services
+- `prune`: Remove unused Docker objects (with confirmation)
+- `help`: Show command list
 
-#### Purpose
+Usage:
 
-- Identify recurring questions with low accuracy
-- Improve training data
-- Monitor usage patterns and abuse prevention
-- Support user-specific analytics
+```bash
+./mita.sh [command]
+```
+
+This script makes it easier to interact with your Dockerized MITA stack in development and production.
 
 ---
